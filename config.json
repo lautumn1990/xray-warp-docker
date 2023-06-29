@@ -1,0 +1,109 @@
+// reference 
+// https://github.com/XTLS/Xray-examples/blob/main/Trojan-TCP-TLS%20(minimal)/config_server.json
+// https://github.com/chika0801/Xray-examples/blob/main/wireguard.md
+{
+    "log": {
+      "loglevel": "warning"
+    },
+    "inbounds": [
+      {
+        "port": 1080,
+        "protocol": "trojan",
+        "settings": {
+          "clients": [
+            {
+              "password": "your-password-make-it-longer", // password
+              "email": "youremail@example.com" // email
+            }
+          ]
+        },
+        "streamSettings": {
+          "network": "tcp",
+          "security": "tls",
+          "tlsSettings": {
+            "alpn": [
+              "http/1.1"
+            ],
+            "certificates": [
+              {
+                "certificateFile": "/etc/xray/fullchain.cer", // your certificateFile, change at docker-compose.yml
+                "keyFile": "/etc/xray/private.key" // your keyFile, change at docker-compose.yml
+              }
+            ]
+          }
+        }
+      },
+      {
+        "tag": "socks-in",
+        "protocol": "socks",
+        "port": 1081,
+        "settings": {
+          "udp": true
+        }
+      }
+    ],
+    "outbounds": [
+      {
+        "tag": "direct",
+        "protocol": "freedom",
+        "settings": {}
+      },
+      {
+        "protocol": "wireguard",
+        "settings": {
+          "secretKey": "xxxxxxxxxxxxxx", // your WireGuard secretKey
+          "peers": [
+            {
+              "publicKey": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+              "allowedIPs": [
+                "0.0.0.0/0",
+                "::/0"
+              ],
+              // change your endpoint, if you has one
+              "endpoint": "engage.cloudflareclient.com:2408"
+            }
+          ],
+          // your reserved reference https://community.sagernet.org/t/warp-reserved/42/2
+          "reserved": [
+            0,
+            0,
+            0
+          ],
+          "mtu": 1280
+        },
+        "tag": "wireguard"
+      }
+    ],
+    "dns": {
+      "servers": [
+        "1.1.1.1",
+        "8.8.8.8",
+        "8.8.4.4"
+      ]
+    },
+    "routing": {
+      "domainStrategy": "IPIfNonMatch",
+      "rules": [
+        {
+          "type": "field",
+          "outboundTag": "direct",
+          "domain": [
+            "geosite:cn"
+          ]
+        },
+        {
+          "type": "field",
+          "outboundTag": "direct",
+          "ip": [
+            "geoip:cn",
+            "geoip:private"
+          ]
+        },
+        {
+          "type": "field",
+          "outboundTag": "wireguard",
+          "network": "tcp,udp"
+        }
+      ]
+    }
+  }

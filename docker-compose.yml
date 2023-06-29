@@ -1,0 +1,15 @@
+version: '3'
+services:
+  xray:
+    image: teddysun/xray:latest
+    container_name: xray
+    privileged: true
+    ports:
+     - 1080:1080
+     - 1081:1081
+    volumes:
+      - ./config.json:/etc/xray/config.json
+      # replace your own certificate files, if make your service public
+      - /root/.acme.sh/your.domain.com/fullchain.cer:/etc/xray/fullchain.cer
+      - /root/.acme.sh/your.domain.com/your.domain.com.key:/etc/xray/private.key
+    restart: always
